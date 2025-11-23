@@ -1,7 +1,7 @@
 import React, { useState, useRef, useLayoutEffect } from 'react';
 import { Bookmark, Category } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Layers } from 'lucide-react';
+import { Calendar, Layers, Pin } from 'lucide-react';
 import clsx from 'clsx';
 import { getTagColor } from '../constants';
 
@@ -107,6 +107,11 @@ export const IconView: React.FC<IconViewProps> = ({
               alt={bookmark.title} 
               className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
             />
+            {bookmark.isPinned && (
+              <div className="absolute top-0 right-0 bg-indigo-500/80 p-0.5 rounded-bl-[4px] shadow-sm">
+                 <Pin size={8} className="text-white fill-white" />
+              </div>
+            )}
           </div>
 
           {/* Minimal Label */}
@@ -153,8 +158,9 @@ export const IconView: React.FC<IconViewProps> = ({
                 <div className="absolute inset-0 bg-neutral-800" />
                 <img src={bookmark.iconUrl} className="w-full h-full object-cover opacity-50 blur-sm scale-110" alt="" />
                 <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/30 to-neutral-900" />
-                <div className="absolute bottom-3 left-3 right-3 z-10">
-                  <h3 className="text-sm font-bold text-white truncate drop-shadow-md">{bookmark.title}</h3>
+                <div className="absolute bottom-3 left-3 right-3 z-10 flex justify-between items-end">
+                  <h3 className="text-sm font-bold text-white truncate drop-shadow-md flex-1">{bookmark.title}</h3>
+                  {bookmark.isPinned && <Pin size={12} className="text-indigo-400 fill-indigo-400 mb-1 ml-2" />}
                 </div>
              </div>
              

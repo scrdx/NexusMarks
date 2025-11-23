@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Edit, Share2, QrCode, Trash2, Plus, FolderPlus, Image, ArrowUp, ArrowDown, FolderPen } from 'lucide-react';
+import { Edit, Share2, QrCode, Trash2, Plus, FolderPlus, Image, ArrowUp, ArrowDown, FolderPen, Pin, PinOff } from 'lucide-react';
 import { ContextMenuType } from '../types';
 
 interface ContextMenuProps {
@@ -7,6 +7,7 @@ interface ContextMenuProps {
   y: number;
   type: ContextMenuType;
   onClose: () => void;
+  isPinned?: boolean;
   actions: {
     onEdit?: () => void;
     onShare?: () => void;
@@ -16,10 +17,11 @@ interface ContextMenuProps {
     onNewCategory?: () => void;
     onChangeBg?: () => void;
     onReorder?: () => void;
+    onPin?: () => void;
   };
 }
 
-export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, type, onClose, actions }) => {
+export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, type, onClose, isPinned, actions }) => {
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -63,6 +65,12 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, type, onClose, a
       case 'bookmark':
         return (
           <>
+            <MenuItem 
+              icon={isPinned ? PinOff : Pin} 
+              label={isPinned ? "Unpin Bookmark" : "Pin Bookmark"} 
+              onClick={actions.onPin} 
+            />
+            <MenuItem separator />
             <MenuItem icon={Edit} label="Edit" onClick={actions.onEdit} />
             <MenuItem icon={Share2} label="Share" onClick={actions.onShare} />
             <MenuItem icon={QrCode} label="QR Code" onClick={actions.onQrCode} />

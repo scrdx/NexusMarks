@@ -39,7 +39,8 @@ export const MOCK_BOOKMARKS: Bookmark[] = [
     tags: ['Library', 'JS', 'Docs'],
     iconUrl: 'https://picsum.photos/seed/react/200/200',
     color: '#61DAFB',
-    createdAt: '2023-10-01T10:00:00Z'
+    createdAt: '2023-10-01T10:00:00Z',
+    isPinned: true
   },
   {
     id: '2',
@@ -72,7 +73,8 @@ export const MOCK_BOOKMARKS: Bookmark[] = [
     tags: ['Design', 'Inspiration'],
     iconUrl: 'https://picsum.photos/seed/dribbble/200/200',
     color: '#EA4C89',
-    createdAt: '2023-09-20T16:45:00Z'
+    createdAt: '2023-09-20T16:45:00Z',
+    isPinned: true
   },
   {
     id: '5',

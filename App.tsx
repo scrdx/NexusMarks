@@ -6,7 +6,7 @@ import { ContextMenu } from './components/ContextMenu';
 import { EditModal } from './components/EditModal';
 import { MOCK_BOOKMARKS, MOCK_CATEGORIES } from './constants';
 import { ViewMode, Category, Bookmark, ContextMenuState, ContextMenuType } from './types';
-import { Menu, Search, Layers, Grid, ZoomIn, ZoomOut, Plus, X, Home } from 'lucide-react';
+import { Menu, Search, Layers, Grid, ZoomIn, ZoomOut, Plus, X, Home, Pin } from 'lucide-react';
 
 const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -14,6 +14,7 @@ const App: React.FC = () => {
   const [cardScale, setCardScale] = useState(1.0);
   const [searchQuery, setSearchQuery] = useState('');
   const [groupingEnabled, setGroupingEnabled] = useState(false);
+  const [showPinnedOnly, setShowPinnedOnly] = useState(false);
   
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(MOCK_BOOKMARKS);
   const [categories, setCategories] = useState<Category[]>(MOCK_CATEGORIES);
@@ -73,11 +74,15 @@ const App: React.FC = () => {
   const filteredBookmarks = useMemo(() => {
     let filtered = bookmarks;
 
-    if (selectedCategoryId) {
-        const selectedCategory = findCategoryById(selectedCategoryId, categories);
-        if (selectedCategory) {
-            const validIds = getAllCategoryIds(selectedCategory);
-            filtered = filtered.filter(b => validIds.includes(b.categoryId));
+    if (showPinnedOnly) {
+        filtered = filtered.filter(b => b.isPinned);
+    } else {
+        if (selectedCategoryId) {
+            const selectedCategory = findCategoryById(selectedCategoryId, categories);
+            if (selectedCategory) {
+                const validIds = getAllCategoryIds(selectedCategory);
+                filtered = filtered.filter(b => validIds.includes(b.categoryId));
+            }
         }
     }
 
@@ -91,9 +96,28 @@ const App: React.FC = () => {
     }
 
     return filtered;
-  }, [selectedCategoryId, searchQuery, bookmarks, categories]);
+  }, [selectedCategoryId, searchQuery, bookmarks, categories, showPinnedOnly]);
 
   // --- Handlers ---
+
+  const handleSelectCategory = (id: string) => {
+    setSelectedCategoryId(id);
+    setShowPinnedOnly(false); // Reset pinned view when category is selected
+  };
+
+  const handleTogglePinnedView = () => {
+    setShowPinnedOnly(!showPinnedOnly);
+    if (!showPinnedOnly) {
+       setSelectedCategoryId(''); // Deselect category visual when entering pinned mode (optional, mostly for UI clarity)
+    } else if (categories.length > 0) {
+       setSelectedCategoryId(categories[0].id); // Revert to default when leaving
+    }
+  };
+
+  const handleGoHome = () => {
+    setSelectedCategoryId('');
+    setShowPinnedOnly(false);
+  };
 
   const handleContextMenu = (e: React.MouseEvent, type: ContextMenuType, targetId: string | null = null) => {
     e.preventDefault();
@@ -297,6 +321,19 @@ const App: React.FC = () => {
      closeContextMenu();
   };
 
+  const handlePinBookmark = () => {
+     if (contextMenu.targetId && contextMenu.type === 'bookmark') {
+        setBookmarks(prev => prev.map(b => 
+           b.id === contextMenu.targetId ? { ...b, isPinned: !b.isPinned } : b
+        ));
+     }
+     closeContextMenu();
+  };
+
+  const isTargetPinned = contextMenu.type === 'bookmark' && contextMenu.targetId 
+    ? bookmarks.find(b => b.id === contextMenu.targetId)?.isPinned 
+    : false;
+
   return (
     <div 
       className="flex h-screen w-screen bg-[#171717] text-neutral-200 overflow-hidden font-sans selection:bg-neutral-700 selection:text-white"
@@ -305,9 +342,9 @@ const App: React.FC = () => {
       <div className="h-full">
         <Sidebar
           categories={categories}
-          selectedCategoryId={selectedCategoryId}
+          selectedCategoryId={showPinnedOnly ? '' : selectedCategoryId} // Visual deselection if pinned is active
           editingCategoryId={editingCategoryId}
-          onSelectCategory={setSelectedCategoryId}
+          onSelectCategory={handleSelectCategory}
           isOpen={isSidebarOpen}
           onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
           // Handle context menu from sidebar
@@ -341,8 +378,16 @@ const App: React.FC = () => {
             </button>
 
             <button
-               onClick={() => setSelectedCategoryId('')}
-               className={`p-2 rounded-[4px] hover:bg-neutral-800 transition-colors ${selectedCategoryId === '' ? 'text-white bg-neutral-800' : 'text-neutral-400'}`}
+               onClick={handleTogglePinnedView}
+               className={`p-2 rounded-[4px] hover:bg-neutral-800 transition-colors ${showPinnedOnly ? 'text-indigo-400 bg-neutral-800 ring-1 ring-indigo-500/50' : 'text-neutral-400'}`}
+               title="Pinned Bookmarks"
+            >
+               <Pin size={18} className={showPinnedOnly ? "fill-indigo-400/20" : ""} />
+            </button>
+
+            <button
+               onClick={handleGoHome}
+               className={`p-2 rounded-[4px] hover:bg-neutral-800 transition-colors ${selectedCategoryId === '' && !showPinnedOnly ? 'text-white bg-neutral-800' : 'text-neutral-400'}`}
                title="All Bookmarks"
             >
                <Home size={18} />
@@ -430,6 +475,15 @@ const App: React.FC = () => {
                 onContextMenu={(e, id) => handleContextMenu(e, 'bookmark', id)}
              />
            )}
+           
+           {/* Pinned View Empty State */}
+           {showPinnedOnly && filteredBookmarks.length === 0 && (
+             <div className="absolute inset-0 flex flex-col items-center justify-center text-neutral-600">
+                <Pin size={48} className="mb-4 text-neutral-800" />
+                <p className="text-sm font-medium">No pinned bookmarks found.</p>
+                <p className="text-xs mt-2">Right-click a bookmark and select "Pin Bookmark" to add it here.</p>
+             </div>
+           )}
         </main>
 
         {/* Context Menu */}
@@ -439,6 +493,7 @@ const App: React.FC = () => {
             y={contextMenu.y}
             type={contextMenu.type}
             onClose={closeContextMenu}
+            isPinned={isTargetPinned}
             actions={{
               onEdit: handleEdit,
               onShare: handleShare,
@@ -447,7 +502,8 @@ const App: React.FC = () => {
               onNewBookmark: handleNewBookmark,
               onNewCategory: handleNewCategory,
               onChangeBg: () => alert('Select Background Logic'),
-              onReorder: handleReorder
+              onReorder: handleReorder,
+              onPin: handlePinBookmark
             }}
           />
         )}

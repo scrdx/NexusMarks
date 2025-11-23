@@ -16,6 +16,7 @@ export interface Bookmark {
   iconUrl: string;
   color?: string;
   createdAt: string; // ISO Date string
+  isPinned?: boolean;
   x?: number;
   y?: number;
   z?: number;

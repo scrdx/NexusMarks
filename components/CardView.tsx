@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Bookmark, Category } from '../types';
 import { motion } from 'framer-motion';
-import { ExternalLink, Calendar, Layers } from 'lucide-react';
+import { ExternalLink, Calendar, Layers, Pin } from 'lucide-react';
 import clsx from 'clsx';
 import { getTagColor } from '../constants';
 
@@ -55,6 +55,16 @@ const FlipCard: React.FC<{
            <div className="h-3/5 relative">
              <img src={bookmark.iconUrl} alt={bookmark.title} className="w-full h-full object-cover opacity-70 grayscale-[30%] group-hover:grayscale-0 transition-all duration-500" />
              <div className="absolute inset-0 bg-gradient-to-t from-neutral-800 via-transparent to-transparent" />
+             
+             {/* Pinned Indicator */}
+             {bookmark.isPinned && (
+               <div className="absolute top-0 left-0 p-1.5 z-20">
+                 <div className="bg-indigo-500 shadow-md p-1 rounded-br-[4px] border-b border-r border-indigo-400/50">
+                    <Pin size={10} className="text-white fill-white" />
+                 </div>
+               </div>
+             )}
+
              <div className="absolute top-3 right-3 bg-neutral-950/60 backdrop-blur-md rounded-[2px] px-1.5 py-0.5 border border-white/5">
                 <Layers size={10} className="text-white/70 inline mr-1" />
                 <span className="text-[9px] text-white/90 font-medium tracking-wide">{getCategoryName(bookmark.categoryId).split(' ').pop()}</span>
@@ -88,8 +98,9 @@ const FlipCard: React.FC<{
           <div className="flex-1 p-5 flex flex-col">
              {/* Icon Left Alignment - No Back text */}
              <div className="flex items-center gap-3 mb-4">
-                 <div className="w-10 h-10 bg-neutral-800 rounded-[4px] p-1 border border-neutral-700 shadow-inner shrink-0">
+                 <div className="w-10 h-10 bg-neutral-800 rounded-[4px] p-1 border border-neutral-700 shadow-inner shrink-0 relative">
                     <img src={bookmark.iconUrl} alt="" className="w-full h-full object-cover rounded-[2px]" />
+                    {bookmark.isPinned && <div className="absolute -top-1 -right-1 bg-indigo-500 rounded-full p-0.5"><Pin size={6} className="text-white fill-white" /></div>}
                  </div>
                  <h4 className="text-xs font-bold text-white leading-tight line-clamp-2">{bookmark.title}</h4>
              </div>
